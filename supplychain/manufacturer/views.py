@@ -67,3 +67,25 @@ def manufacturer_dashboard(request):
         return render(request, 'manufacturer/dashboard.html', {'manufacturer': manufacturer})
     except Manufacturer.DoesNotExist:
         return redirect('manufacturer_login')
+    
+
+def request_quote(request):
+    if not request.user.is_authenticated:
+        return redirect('manufacturer_login')
+    return render(request, 'manufacturer/request_quote.html', {
+        'manufacturer': Manufacturer.objects.get(user=request.user)
+    })
+
+def list_products(request):
+    if not request.user.is_authenticated:
+        return redirect('manufacturer_login')
+    return render(request, 'manufacturer/list_products.html', {
+        'manufacturer': Manufacturer.objects.get(user=request.user)
+    })
+
+def complete_profile(request):
+    if not request.user.is_authenticated:
+        return redirect('manufacturer_login')
+    return render(request, 'manufacturer/complete_profile.html', {
+        'manufacturer': Manufacturer.objects.get(user=request.user)
+    })
