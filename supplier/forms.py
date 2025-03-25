@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from manufacturer.models import QuoteRequest
 
 class SupplierRegistrationForm(UserCreationForm):
     first_name = forms.CharField(max_length=100, required=True)
@@ -24,3 +25,9 @@ class SupplierRegistrationForm(UserCreationForm):
 class SupplierLoginForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
+
+
+class BidForm(forms.Form):
+    bid_amount = forms.DecimalField(label="Your Price", min_value=0)
+    delivery_time = forms.IntegerField(label="Delivery Time (days)", min_value=1)
+    comments = forms.CharField(widget=forms.Textarea, required=False)

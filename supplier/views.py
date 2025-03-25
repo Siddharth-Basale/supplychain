@@ -1,8 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
-from .forms import SupplierRegistrationForm, SupplierLoginForm
-from .models import Supplier
+from .forms import SupplierRegistrationForm, SupplierLoginForm, BidForm
+from .models import Supplier, Bid
 from django.contrib.auth.models import User
+from manufacturer.models import QuoteRequest
+from django.contrib import messages
 
 def supplier_register(request):
     if request.method == 'POST':
@@ -67,3 +69,49 @@ def supplier_dashboard(request):
         return render(request, 'supplier/dashboard.html', {'supplier': supplier})
     except Supplier.DoesNotExist:
         return redirect('supplier_login')
+    
+
+def supplier_dashboard(request):
+    if not request.user.is_authenticated:
+        return redirect('supplier_login')
+    
+    try:
+        supplier = Supplier.objects.get(user=request.user)
+        open_quotes = QuoteRequest.objects.filter(status='open').order_by('-created_at')
+        your_bids = Bid.objects.filter(supplier=supplier).select_related('quote')
+        
+        return render(request, 'supplier/dashboard.html', {
+            'supplier': supplier,
+            'open_quotes': open_quotes,
+            'your_bids': your_bids
+        })
+    except Supplier.DoesNotExist:
+        return redirect('supplier_login')
+
+def submit_bid(request, quote_id):
+    if not request.user.is_authenticated:
+        return redirect('supplier_login')
+    
+    supplier = get_object_or_404(Supplier, user=request.user)
+    quote = get_object_or_404(QuoteRequest, id=quote_id, status='open')
+    
+    if request.method == 'POST':
+        form = BidForm(request.POST)
+        if form.is_valid():
+            Bid.objects.create(
+                supplier=supplier,
+                quote=quote,
+                bid_amount=form.cleaned_data['bid_amount'],
+                delivery_time=form.cleaned_data['delivery_time'],
+                comments=form.cleaned_data['comments']
+            )
+            messages.success(request, 'Your bid has been submitted successfully!')
+            return redirect('supplier_dashboard')
+    else:
+        form = BidForm()
+    
+    return render(request, 'supplier/submit_bid.html', {
+        'form': form,
+        'quote': quote,
+        'supplier': supplier
+    })

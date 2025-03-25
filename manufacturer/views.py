@@ -96,6 +96,11 @@ def request_quote(request):
     
     if request.method == 'POST':
         try:
+            # Convert empty strings to None for Decimal fields
+            unit_price = request.POST.get('unit_price')
+            if unit_price == '':
+                unit_price = None
+            
             QuoteRequest.objects.create(
                 manufacturer=manufacturer,
                 product=request.POST.get('product'),
@@ -105,17 +110,18 @@ def request_quote(request):
                 quantity=request.POST.get('quantity'),
                 unit=request.POST.get('unit'),
                 annual_volume=request.POST.get('annual_volume'),
-                unit_price=request.POST.get('unit_price'),
+                unit_price=unit_price,
                 currency=request.POST.get('currency'),
                 shipping_terms=request.POST.get('shipping_terms'),
                 destination_port=request.POST.get('destination_port'),
                 payment_terms=request.POST.get('payment_terms')
             )
             messages.success(request, 'Your quote request has been submitted successfully!')
-            # Redirect to the quote history page after creation
-            return redirect('manufacturer_quote_history')
+            return redirect('manufacturer_quote_history')  # Fixed redirect name
         except Exception as e:
             messages.error(request, f'Error submitting request: {str(e)}')
+            # For debugging - print the error to console
+            print(f"Error creating quote: {str(e)}")
     
     return render(request, 'manufacturer/request_quote.html', {
         'manufacturer': manufacturer
