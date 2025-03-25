@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supply Chain Portal</title>
+</head>
+<body>
+    <h1>Welcome to Supply Chain Portal</h1>
+    
+    <div>
+        <h2>Manufacturer</h2>
+        <a href="{% url 'manufacturer_login' %}">Manufacturer Login</a>
+        <a href="{% url 'manufacturer_register' %}">Manufacturer Register</a>
+    </div>
+    
+    <div>
+        <h2>Supplier</h2>
+        <a href="{% url 'supplier_login' %}">Supplier Login</a>
+        <a href="{% url 'supplier_register' %}">Supplier Register</a>
+    </div>
+</body>
+</html>

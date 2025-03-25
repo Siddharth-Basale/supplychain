@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supplier Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, {{ supplier.company_name }}</h1>
+    <p>Name: {{ supplier.first_name }} {{ supplier.last_name }}</p>
+    <p>Location: {{ supplier.city }}, {{ supplier.state }}</p>
+    <p>Business Type: {{ supplier.business_type }}</p>
+    <p>Key Services: {{ supplier.key_services }}</p>
+    <a href="{% url 'logout' %}">Logout</a>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manufacturer Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, {{ manufacturer.company_name }}</h1>
+    <p>Name: {{ manufacturer.first_name }} {{ manufacturer.last_name }}</p>
+    <p>Location: {{ manufacturer.city }}, {{ manufacturer.state }}</p>
+    <p>Business Type: {{ manufacturer.business_type }}</p>
+    <p>Key Products: {{ manufacturer.key_products }}</p>
+    <a href="{% url 'logout' %}">Logout</a>
+</body>
+</html>
