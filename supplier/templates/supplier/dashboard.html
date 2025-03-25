@@ -53,6 +53,8 @@
     <div class="container">
         <h1>Welcome, {{ supplier.company_name }}</h1>
         
+        <a href="{% url 'supplier_profile' %}" class="bid-btn">View/Edit Profile</a>
+
         <div class="section">
             <h2>Open Quotations</h2>
             {% for quote in open_quotes %}

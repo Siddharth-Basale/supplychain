@@ -70,6 +70,12 @@
     <div class="dashboard-container">
       <h1>Welcome, {{ manufacturer.company_name }}</h1>
 
+      <li>
+        <a href="{% url 'manufacturer_profile' %}" class="action-link">
+            View/Edit Profile
+        </a>
+      </li>
+
       <div class="thank-you-message">
         <h2>Thank You</h2>
         <p>Thank you for registering with us. You may now proceed to:</p>
@@ -106,12 +112,10 @@
       <div class="company-info">
         <h3>Your Company Information</h3>
         <p>
-          <strong>Contact:</strong> {{ manufacturer.first_name }} {{
-          manufacturer.last_name }}
+          <strong>Contact:</strong> {{ manufacturer.first_name }} {{ manufacturer.last_name }}
         </p>
         <p>
-          <strong>Location:</strong> {{ manufacturer.city }}, {{
-          manufacturer.state }}
+          <strong>Location:</strong> {{ manufacturer.city }}, {{ manufacturer.state }}
         </p>
         <p><strong>Business Type:</strong> {{ manufacturer.business_type }}</p>
         <p><strong>Key Products:</strong> {{ manufacturer.key_products }}</p>

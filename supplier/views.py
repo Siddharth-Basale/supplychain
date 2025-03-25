@@ -115,3 +115,37 @@ def submit_bid(request, quote_id):
         'quote': quote,
         'supplier': supplier
     })
+    
+    
+def view_profile(request):
+    if not request.user.is_authenticated:
+        return redirect('supplier_login')
+    
+    supplier = Supplier.objects.get(user=request.user)
+    return render(request, 'supplier/profile.html', {'supplier': supplier})
+
+def edit_profile(request):
+    if not request.user.is_authenticated:
+        return redirect('supplier_login')
+    
+    supplier = Supplier.objects.get(user=request.user)
+    
+    if request.method == 'POST':
+        # Update basic fields (no image handling)
+        supplier.first_name = request.POST.get('first_name', supplier.first_name)
+        supplier.last_name = request.POST.get('last_name', supplier.last_name)
+        supplier.company_name = request.POST.get('company_name', supplier.company_name)
+        supplier.city = request.POST.get('city', supplier.city)
+        supplier.state = request.POST.get('state', supplier.state)
+        supplier.business_type = request.POST.get('business_type', supplier.business_type)
+        supplier.website = request.POST.get('website', supplier.website)
+        supplier.phone_number = request.POST.get('phone_number', supplier.phone_number)
+        supplier.key_services = request.POST.get('key_services', supplier.key_services)
+        supplier.save()
+        
+        messages.success(request, 'Profile updated successfully!')
+        return redirect('supplier_profile')
+    
+    return render(request, 'supplier/edit_profile.html', {
+        'supplier': supplier
+    })

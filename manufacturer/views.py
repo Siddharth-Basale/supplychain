@@ -137,3 +137,36 @@ def quote_history(request):
         'manufacturer': manufacturer,
         'quotes': quotes
     })
+    
+def view_profile(request):
+    if not request.user.is_authenticated:
+        return redirect('manufacturer_login')
+    
+    manufacturer = Manufacturer.objects.get(user=request.user)
+    return render(request, 'manufacturer/profile.html', {'manufacturer': manufacturer})
+
+def edit_profile(request):
+    if not request.user.is_authenticated:
+        return redirect('manufacturer_login')
+    
+    manufacturer = Manufacturer.objects.get(user=request.user)
+    
+    if request.method == 'POST':
+        # Update basic fields (no image handling)
+        manufacturer.first_name = request.POST.get('first_name', manufacturer.first_name)
+        manufacturer.last_name = request.POST.get('last_name', manufacturer.last_name)
+        manufacturer.company_name = request.POST.get('company_name', manufacturer.company_name)
+        manufacturer.city = request.POST.get('city', manufacturer.city)
+        manufacturer.state = request.POST.get('state', manufacturer.state)
+        manufacturer.business_type = request.POST.get('business_type', manufacturer.business_type)
+        manufacturer.website = request.POST.get('website', manufacturer.website)
+        manufacturer.phone_number = request.POST.get('phone_number', manufacturer.phone_number)
+        manufacturer.key_products = request.POST.get('key_products', manufacturer.key_products)
+        manufacturer.save()
+        
+        messages.success(request, 'Profile updated successfully!')
+        return redirect('manufacturer_profile')
+    
+    return render(request, 'manufacturer/edit_profile.html', {
+        'manufacturer': manufacturer
+    })

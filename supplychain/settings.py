@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'manufacturer',
     'supplier',
-    'home',  # Added home app
+    'home',
 ]
 
 MIDDLEWARE = [
@@ -123,3 +123,8 @@ AUTHENTICATION_BACKENDS = [
 LOGIN_URL = 'home'
 LOGIN_REDIRECT_URL = 'home'  # Added for better redirect after login
 LOGOUT_REDIRECT_URL = 'home'  # Added for better redirect after logout
+
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
