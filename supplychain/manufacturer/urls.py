@@ -11,4 +11,5 @@ urlpatterns = [
     path('request-quote/', views.request_quote, name='manufacturer_request_quote'),
     path('list-products/', views.list_products, name='manufacturer_list_products'),
     path('complete-profile/', views.complete_profile, name='manufacturer_complete_profile'),
+    path('quote-history/', views.quote_history, name='manufacturer_quote_history'),
 ]

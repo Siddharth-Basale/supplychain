@@ -70,12 +70,7 @@ def manufacturer_dashboard(request):
         return redirect('manufacturer_login')
     
 
-def request_quote(request):
-    if not request.user.is_authenticated:
-        return redirect('manufacturer_login')
-    return render(request, 'manufacturer/request_quote.html', {
-        'manufacturer': Manufacturer.objects.get(user=request.user)
-    })
+
 
 def list_products(request):
     if not request.user.is_authenticated:
@@ -100,7 +95,6 @@ def request_quote(request):
     manufacturer = Manufacturer.objects.get(user=request.user)
     
     if request.method == 'POST':
-        # Process form data
         try:
             QuoteRequest.objects.create(
                 manufacturer=manufacturer,
@@ -118,10 +112,22 @@ def request_quote(request):
                 payment_terms=request.POST.get('payment_terms')
             )
             messages.success(request, 'Your quote request has been submitted successfully!')
-            return redirect('manufacturer_dashboard')
+            # Redirect to the quote history page after creation
+            return redirect('manufacturer_quote_history')
         except Exception as e:
             messages.error(request, f'Error submitting request: {str(e)}')
     
     return render(request, 'manufacturer/request_quote.html', {
         'manufacturer': manufacturer
+    })
+
+def quote_history(request):
+    if not request.user.is_authenticated:
+        return redirect('manufacturer_login')
+    
+    manufacturer = Manufacturer.objects.get(user=request.user)
+    quotes = QuoteRequest.objects.filter(manufacturer=manufacturer).order_by('-created_at')
+    return render(request, 'manufacturer/quote_history.html', {
+        'manufacturer': manufacturer,
+        'quotes': quotes
     })
