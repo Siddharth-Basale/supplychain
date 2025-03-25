@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
+from django.contrib import messages
 from .forms import ManufacturerRegistrationForm, ManufacturerLoginForm
-from .models import Manufacturer
+from .models import Manufacturer, QuoteRequest
 from django.contrib.auth.models import User
 
 def manufacturer_register(request):
@@ -88,4 +89,39 @@ def complete_profile(request):
         return redirect('manufacturer_login')
     return render(request, 'manufacturer/complete_profile.html', {
         'manufacturer': Manufacturer.objects.get(user=request.user)
+    })
+
+
+
+def request_quote(request):
+    if not request.user.is_authenticated:
+        return redirect('manufacturer_login')
+    
+    manufacturer = Manufacturer.objects.get(user=request.user)
+    
+    if request.method == 'POST':
+        # Process form data
+        try:
+            QuoteRequest.objects.create(
+                manufacturer=manufacturer,
+                product=request.POST.get('product'),
+                category=request.POST.get('category'),
+                description=request.POST.get('description'),
+                deadline=request.POST.get('deadline'),
+                quantity=request.POST.get('quantity'),
+                unit=request.POST.get('unit'),
+                annual_volume=request.POST.get('annual_volume'),
+                unit_price=request.POST.get('unit_price'),
+                currency=request.POST.get('currency'),
+                shipping_terms=request.POST.get('shipping_terms'),
+                destination_port=request.POST.get('destination_port'),
+                payment_terms=request.POST.get('payment_terms')
+            )
+            messages.success(request, 'Your quote request has been submitted successfully!')
+            return redirect('manufacturer_dashboard')
+        except Exception as e:
+            messages.error(request, f'Error submitting request: {str(e)}')
+    
+    return render(request, 'manufacturer/request_quote.html', {
+        'manufacturer': manufacturer
     })
