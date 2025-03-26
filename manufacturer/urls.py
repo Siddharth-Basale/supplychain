@@ -14,4 +14,5 @@ urlpatterns = [
     path('quote-history/', views.quote_history, name='manufacturer_quote_history'),
     path('profile/', views.view_profile, name='manufacturer_profile'),
     path('profile/edit/', views.edit_profile, name='manufacturer_edit_profile'),
+    path('accept-bid/<int:bid_id>/', views.accept_bid, name='accept_bid'),
 ]

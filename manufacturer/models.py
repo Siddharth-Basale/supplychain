@@ -42,6 +42,7 @@ class QuoteRequest(models.Model):
     payment_terms = models.CharField(max_length=50)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
     created_at = models.DateTimeField(auto_now_add=True)
+    accepted_bid = models.ForeignKey('supplier.Bid', on_delete=models.SET_NULL, null=True, blank=True)
     
     def __str__(self):
         return f"{self.product} - {self.manufacturer.company_name}"

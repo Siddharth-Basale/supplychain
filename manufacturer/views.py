@@ -59,15 +59,68 @@ def manufacturer_login(request):
         form = ManufacturerLoginForm()
     return render(request, 'manufacturer/login.html', {'form': form})
 
+# manufacturer/views.py
+from supplier.models import Bid
+
 def manufacturer_dashboard(request):
     if not request.user.is_authenticated:
         return redirect('manufacturer_login')
     
     try:
         manufacturer = Manufacturer.objects.get(user=request.user)
-        return render(request, 'manufacturer/dashboard.html', {'manufacturer': manufacturer})
+        quotes = QuoteRequest.objects.filter(manufacturer=manufacturer)
+        bids = Bid.objects.filter(quote__in=quotes).select_related('quote', 'supplier')
+        
+        # Sorting
+        sort = request.GET.get('sort', 'newest')
+        if sort == 'lowest':
+            bids = bids.order_by('bid_amount')
+        elif sort == 'highest':
+            bids = bids.order_by('-bid_amount')
+        else:
+            bids = bids.order_by('-submitted_at')
+        
+        # Filtering
+        status_filter = request.GET.get('status')
+        if status_filter:
+            bids = bids.filter(status=status_filter)
+            
+        return render(request, 'manufacturer/dashboard.html', {
+            'manufacturer': manufacturer,
+            'bids': bids
+        })
     except Manufacturer.DoesNotExist:
         return redirect('manufacturer_login')
+
+def accept_bid(request, bid_id):
+    if not request.user.is_authenticated:
+        return redirect('manufacturer_login')
+    
+    try:
+        bid = Bid.objects.get(id=bid_id)
+        quote = bid.quote
+        
+        # Check if the current user owns the quote
+        if quote.manufacturer.user != request.user:
+            messages.error(request, "You don't have permission to accept this bid")
+            return redirect('manufacturer_dashboard')
+        
+        # Update bid status
+        bid.status = 'accepted'
+        bid.save()
+        
+        # Update quote status
+        quote.status = 'awarded'
+        quote.save()
+        
+        # Reject other bids for this quote
+        Bid.objects.filter(quote=quote).exclude(id=bid_id).update(status='rejected')
+        
+        messages.success(request, 'Bid accepted successfully!')
+    except Bid.DoesNotExist:
+        messages.error(request, 'Bid not found')
+    
+    return redirect('manufacturer_dashboard')
     
 
 
