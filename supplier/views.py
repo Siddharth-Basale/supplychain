@@ -6,6 +6,11 @@ from django.contrib.auth.models import User
 from manufacturer.models import QuoteRequest, Manufacturer
 from django.contrib import messages
 
+# Add at the top
+from django.conf import settings
+from utils.email import send_email
+
+# Update supplier_register function
 def supplier_register(request):
     if request.method == 'POST':
         form = SupplierRegistrationForm(request.POST)
@@ -29,13 +34,16 @@ def supplier_register(request):
                 key_services=form.cleaned_data['key_services']
             )
             
-            # Log the user in
-            auth_user = authenticate(
-                username=form.cleaned_data['username'],
-                password=form.cleaned_data['password1']
+            # Send welcome email
+            send_email(
+                subject="Your Supplier Account Has Been Created",
+                to_email=user.email,
+                template_name="emails/account_created_supplier.html",
+                context={
+                    'supplier': supplier,
+                    'user': user
+                }
             )
-            login(request, auth_user)
-            return redirect('supplier_dashboard')
     else:
         form = SupplierRegistrationForm()
     return render(request, 'supplier/register.html', {'form': form})
@@ -89,6 +97,7 @@ def supplier_dashboard(request):
     except Supplier.DoesNotExist:
         return redirect('supplier_login')
 
+# Update submit_bid function
 def submit_bid(request, quote_id):
     if not request.user.is_authenticated:
         return redirect('supplier_login')
@@ -99,13 +108,39 @@ def submit_bid(request, quote_id):
     if request.method == 'POST':
         form = BidForm(request.POST)
         if form.is_valid():
-            Bid.objects.create(
+            bid = Bid.objects.create(
                 supplier=supplier,
                 quote=quote,
                 bid_amount=form.cleaned_data['bid_amount'],
                 delivery_time=form.cleaned_data['delivery_time'],
                 comments=form.cleaned_data['comments']
             )
+            
+            # Send bid confirmation to supplier
+            send_email(
+                subject=f"Your Bid for {quote.product} Has Been Submitted",
+                to_email=request.user.email,
+                template_name="emails/bid_submitted.html",
+                context={
+                    'supplier': supplier,
+                    'quote': quote,
+                    'bid': bid
+                }
+            )
+            
+            # Send notification to manufacturer
+            send_email(
+                subject=f"New Bid Received for {quote.product}",
+                to_email=quote.manufacturer.user.email,
+                template_name="emails/new_bid_received.html",
+                context={
+                    'manufacturer': quote.manufacturer,
+                    'supplier': supplier,
+                    'quote': quote,
+                    'bid': bid
+                }
+            )
+            
             messages.success(request, 'Your bid has been submitted successfully!')
             return redirect('supplier_dashboard')
     else:

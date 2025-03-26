@@ -56,6 +56,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),  # For global templates
             os.path.join(BASE_DIR, 'home/templates'),  # For home app templates
         ],
         'APP_DIRS': True,
@@ -124,6 +125,16 @@ LOGIN_URL = 'home'
 LOGIN_REDIRECT_URL = 'home'  # Added for better redirect after login
 LOGOUT_REDIRECT_URL = 'home'  # Added for better redirect after logout
 
+# supplychain/settings.py
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # e.g., smtp.gmail.com
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'insightai.hackathonclub@gmail.com'
+EMAIL_HOST_PASSWORD = 'rfpn qirj spih hlpv'
+DEFAULT_FROM_EMAIL = 'insightai.hackathonclub@gmail.com'
 
 # Media files
 MEDIA_URL = '/media/'

@@ -6,6 +6,9 @@ from .models import Manufacturer, QuoteRequest
 from supplier.models import Supplier
 from django.contrib.auth.models import User
 
+from django.conf import settings
+from utils.email import send_email
+
 def manufacturer_register(request):
     if request.method == 'POST':
         form = ManufacturerRegistrationForm(request.POST)
@@ -29,13 +32,16 @@ def manufacturer_register(request):
                 key_products=form.cleaned_data['key_products']
             )
             
-            # Log the user in
-            auth_user = authenticate(
-                username=form.cleaned_data['username'],
-                password=form.cleaned_data['password1']
+            # Send welcome email
+            send_email(
+                subject="Your Manufacturer Account Has Been Created",
+                to_email=user.email,
+                template_name="emails/account_created_manufacturer.html",
+                context={
+                    'manufacturer': manufacturer,
+                    'user': user
+                }
             )
-            login(request, auth_user)
-            return redirect('manufacturer_dashboard')
     else:
         form = ManufacturerRegistrationForm()
     return render(request, 'manufacturer/register.html', {'form': form})
@@ -98,12 +104,39 @@ def accept_bid(request, bid_id):
         # Reject other bids for this quote
         Bid.objects.filter(quote=quote).exclude(id=bid_id).update(status='rejected')
         
+        # Send notification to supplier
+        send_email(
+            subject=f"Your Bid for {quote.product} Has Been Accepted",
+            to_email=bid.supplier.user.email,
+            template_name="emails/bid_status_update.html",
+            context={
+                'supplier': bid.supplier,
+                'manufacturer': quote.manufacturer,
+                'quote': quote,
+                'bid': bid
+            }
+        )
+        
+        # Send notifications to rejected suppliers
+        rejected_bids = Bid.objects.filter(quote=quote, status='rejected')
+        for rejected_bid in rejected_bids:
+            send_email(
+                subject=f"Your Bid for {quote.product} Has Been Rejected",
+                to_email=rejected_bid.supplier.user.email,
+                template_name="emails/bid_status_update.html",
+                context={
+                    'supplier': rejected_bid.supplier,
+                    'manufacturer': quote.manufacturer,
+                    'quote': quote,
+                    'bid': rejected_bid
+                }
+            )
+        
         messages.success(request, 'Bid accepted successfully!')
     except Bid.DoesNotExist:
         messages.error(request, 'Bid not found')
     
     return redirect('manufacturer_dashboard')
-    
 
 
 
@@ -123,6 +156,7 @@ def complete_profile(request):
 
 
 
+# Update request_quote function
 def request_quote(request):
     if not request.user.is_authenticated:
         return redirect('manufacturer_login')
@@ -136,7 +170,7 @@ def request_quote(request):
             if unit_price == '':
                 unit_price = None
             
-            QuoteRequest.objects.create(
+            quote = QuoteRequest.objects.create(
                 manufacturer=manufacturer,
                 product=request.POST.get('product'),
                 category=request.POST.get('category'),
@@ -151,17 +185,27 @@ def request_quote(request):
                 destination_port=request.POST.get('destination_port'),
                 payment_terms=request.POST.get('payment_terms')
             )
+            
+            # Send quote confirmation email
+            send_email(
+                subject=f"Your Quote for {quote.product} Has Been Submitted",
+                to_email=request.user.email,
+                template_name="emails/quote_submitted.html",
+                context={
+                    'manufacturer': manufacturer,
+                    'quote': quote
+                }
+            )
+            
             messages.success(request, 'Your quote request has been submitted successfully!')
-            return redirect('manufacturer_quote_history')  # Fixed redirect name
+            return redirect('manufacturer_quote_history')
         except Exception as e:
             messages.error(request, f'Error submitting request: {str(e)}')
-            # For debugging - print the error to console
             print(f"Error creating quote: {str(e)}")
     
     return render(request, 'manufacturer/request_quote.html', {
         'manufacturer': manufacturer
     })
-
 # manufacturer/views.py
 def quote_history(request):
     if not request.user.is_authenticated:
