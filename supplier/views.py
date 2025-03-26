@@ -60,17 +60,7 @@ def supplier_login(request):
         form = SupplierLoginForm()
     return render(request, 'supplier/login.html', {'form': form})
 
-def supplier_dashboard(request):
-    if not request.user.is_authenticated:
-        return redirect('supplier_login')
-    
-    try:
-        supplier = Supplier.objects.get(user=request.user)
-        return render(request, 'supplier/dashboard.html', {'supplier': supplier})
-    except Supplier.DoesNotExist:
-        return redirect('supplier_login')
-    
-
+# supplier/views.py
 def supplier_dashboard(request):
     if not request.user.is_authenticated:
         return redirect('supplier_login')
@@ -78,12 +68,23 @@ def supplier_dashboard(request):
     try:
         supplier = Supplier.objects.get(user=request.user)
         open_quotes = QuoteRequest.objects.filter(status='open').order_by('-created_at')
+        
+        # Category filtering
+        category_filter = request.GET.get('category')
+        if category_filter:
+            open_quotes = open_quotes.filter(category=category_filter)
+        
+        # Get all unique categories for the filter dropdown
+        categories = QuoteRequest.objects.values_list('category', flat=True).distinct()
+        
         your_bids = Bid.objects.filter(supplier=supplier).select_related('quote')
         
         return render(request, 'supplier/dashboard.html', {
             'supplier': supplier,
             'open_quotes': open_quotes,
-            'your_bids': your_bids
+            'your_bids': your_bids,
+            'categories': categories,
+            'current_category': category_filter
         })
     except Supplier.DoesNotExist:
         return redirect('supplier_login')
