@@ -3,7 +3,7 @@ from django.contrib.auth import login, authenticate
 from .forms import SupplierRegistrationForm, SupplierLoginForm, BidForm
 from .models import Supplier, Bid
 from django.contrib.auth.models import User
-from manufacturer.models import QuoteRequest
+from manufacturer.models import QuoteRequest, Manufacturer
 from django.contrib import messages
 
 def supplier_register(request):
@@ -149,3 +149,20 @@ def edit_profile(request):
     return render(request, 'supplier/edit_profile.html', {
         'supplier': supplier
     })
+    
+def view_manufacturer_profile(request, manufacturer_id):
+    if not request.user.is_authenticated:
+        return redirect('supplier_login')
+    
+    try:
+        supplier = Supplier.objects.get(user=request.user)
+        manufacturer = Manufacturer.objects.get(id=manufacturer_id)
+        quote_id = request.GET.get('quote_id')  # Get from URL parameter
+        return render(request, 'supplier/manufacturer_profile.html', {
+            'manufacturer': manufacturer,
+            'supplier': supplier,
+            'quote_id': quote_id
+        })
+    except Manufacturer.DoesNotExist:
+        messages.error(request, "Manufacturer not found")
+        return redirect('supplier_dashboard')

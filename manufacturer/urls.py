@@ -1,3 +1,4 @@
+# manufacturer/urls.py
 from django.urls import path
 from . import views
 
@@ -12,7 +13,9 @@ urlpatterns = [
     path('list-products/', views.list_products, name='manufacturer_list_products'),
     path('complete-profile/', views.complete_profile, name='manufacturer_complete_profile'),
     path('quote-history/', views.quote_history, name='manufacturer_quote_history'),
+    path('quote-bids/<int:quote_id>/', views.view_quote_bids, name='view_quote_bids'),
     path('profile/', views.view_profile, name='manufacturer_profile'),
     path('profile/edit/', views.edit_profile, name='manufacturer_edit_profile'),
     path('accept-bid/<int:bid_id>/', views.accept_bid, name='accept_bid'),
+    path('supplier-profile/<int:supplier_id>/', views.view_supplier_profile, name='view_supplier_profile'),
 ]

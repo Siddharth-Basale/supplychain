@@ -3,6 +3,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib import messages
 from .forms import ManufacturerRegistrationForm, ManufacturerLoginForm
 from .models import Manufacturer, QuoteRequest
+from supplier.models import Supplier
 from django.contrib.auth.models import User
 
 def manufacturer_register(request):
@@ -59,35 +60,16 @@ def manufacturer_login(request):
         form = ManufacturerLoginForm()
     return render(request, 'manufacturer/login.html', {'form': form})
 
-# manufacturer/views.py
-from supplier.models import Bid
 
+from supplier.models import Bid
 def manufacturer_dashboard(request):
     if not request.user.is_authenticated:
         return redirect('manufacturer_login')
     
     try:
         manufacturer = Manufacturer.objects.get(user=request.user)
-        quotes = QuoteRequest.objects.filter(manufacturer=manufacturer)
-        bids = Bid.objects.filter(quote__in=quotes).select_related('quote', 'supplier')
-        
-        # Sorting
-        sort = request.GET.get('sort', 'newest')
-        if sort == 'lowest':
-            bids = bids.order_by('bid_amount')
-        elif sort == 'highest':
-            bids = bids.order_by('-bid_amount')
-        else:
-            bids = bids.order_by('-submitted_at')
-        
-        # Filtering
-        status_filter = request.GET.get('status')
-        if status_filter:
-            bids = bids.filter(status=status_filter)
-            
         return render(request, 'manufacturer/dashboard.html', {
-            'manufacturer': manufacturer,
-            'bids': bids
+            'manufacturer': manufacturer
         })
     except Manufacturer.DoesNotExist:
         return redirect('manufacturer_login')
@@ -180,12 +162,19 @@ def request_quote(request):
         'manufacturer': manufacturer
     })
 
+# manufacturer/views.py
 def quote_history(request):
     if not request.user.is_authenticated:
         return redirect('manufacturer_login')
     
     manufacturer = Manufacturer.objects.get(user=request.user)
     quotes = QuoteRequest.objects.filter(manufacturer=manufacturer).order_by('-created_at')
+    
+    # Status filtering
+    status_filter = request.GET.get('status')
+    if status_filter:
+        quotes = quotes.filter(status=status_filter)
+    
     return render(request, 'manufacturer/quote_history.html', {
         'manufacturer': manufacturer,
         'quotes': quotes
@@ -223,3 +212,52 @@ def edit_profile(request):
     return render(request, 'manufacturer/edit_profile.html', {
         'manufacturer': manufacturer
     })
+
+
+# manufacturer/views.py
+# manufacturer/views.py
+def view_quote_bids(request, quote_id):
+    if not request.user.is_authenticated:
+        return redirect('manufacturer_login')
+    
+    try:
+        manufacturer = Manufacturer.objects.get(user=request.user)
+        quote = QuoteRequest.objects.get(id=quote_id, manufacturer=manufacturer)
+        bids = Bid.objects.filter(quote=quote).select_related('supplier')
+        
+        # Sorting functionality
+        sort = request.GET.get('sort', 'newest')
+        if sort == 'lowest':
+            bids = bids.order_by('bid_amount')
+        elif sort == 'highest':
+            bids = bids.order_by('-bid_amount')
+        else:  # default to newest first
+            bids = bids.order_by('-submitted_at')
+        
+        return render(request, 'manufacturer/quote_bids.html', {
+            'quote': quote,
+            'bids': bids,
+            'manufacturer': manufacturer,
+            'current_sort': sort  # Pass the current sort option to template
+        })
+    except (Manufacturer.DoesNotExist, QuoteRequest.DoesNotExist):
+        messages.error(request, "Quote not found or you don't have permission to view it")
+        return redirect('manufacturer_quote_history')
+    
+    
+def view_supplier_profile(request, supplier_id):
+    if not request.user.is_authenticated:
+        return redirect('manufacturer_login')
+    
+    try:
+        manufacturer = Manufacturer.objects.get(user=request.user)
+        supplier = Supplier.objects.get(id=supplier_id)
+        quote_id = request.GET.get('quote_id')  # Get from URL parameter
+        return render(request, 'manufacturer/supplier_profile.html', {
+            'supplier': supplier,
+            'manufacturer': manufacturer,
+            'quote_id': quote_id
+        })
+    except Supplier.DoesNotExist:
+        messages.error(request, "Supplier not found")
+        return redirect('manufacturer_dashboard')

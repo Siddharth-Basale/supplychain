@@ -59,6 +59,9 @@
             <h2>Open Quotations</h2>
             {% for quote in open_quotes %}
             <div class="quote-card">
+                <h3><a href="{% url 'view_manufacturer_profile' quote.manufacturer.id %}?quote_id={{ quote.id }}">
+                    {{ quote.manufacturer.company_name }}
+                </a></a> - {{ quote.product }}</h3>
                 <h3>{{ quote.product }} ({{ quote.get_category_display }})</h3>
                 <p><strong>Quantity:</strong> {{ quote.quantity }} {{ quote.unit }}</p>
                 <p><strong>Deadline:</strong> {{ quote.deadline|date:"M d, Y" }}</p>

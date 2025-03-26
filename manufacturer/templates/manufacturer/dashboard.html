@@ -1,3 +1,4 @@
+<!-- manufacturer/templates/manufacturer/dashboard.html -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -64,61 +65,6 @@
       .logout-btn:hover {
         background: #c82333;
       }
-
-      .bids-section {
-        margin-top: 40px;
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
-    
-    .bid-card {
-        background: white;
-        padding: 15px;
-        margin-bottom: 15px;
-        border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .bid-card.accepted {
-        border-left: 4px solid #28a745;
-    }
-    
-    .bid-card.rejected {
-        border-left: 4px solid #dc3545;
-    }
-    
-    .status {
-        padding: 3px 8px;
-        border-radius: 3px;
-        font-size: 0.9em;
-    }
-    
-    .status.submitted { background: #ffc107; color: #000; }
-    .status.accepted { background: #28a745; color: #fff; }
-    .status.rejected { background: #dc3545; color: #fff; }
-    
-    .accept-btn {
-        background: #28a745;
-        color: white;
-        border: none;
-        padding: 8px 15px;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    
-    .filters {
-        margin-bottom: 20px;
-        display: flex;
-        gap: 20px;
-        align-items: center;
-    }
-    
-    .filters select {
-        padding: 5px;
-        border-radius: 4px;
-    }
-
     </style>
   </head>
   <body>
@@ -147,6 +93,14 @@
           <li>
             <a
               href="{% url 'manufacturer_quote_history' %}"
+              class="action-link"
+            >
+              View your quote history
+            </a>
+          </li>
+          <li>
+            <a
+              href="{% url 'manufacturer_list_products' %}"
               class="action-link"
             >
               List your products (you will be asked to upgrade to a paid
@@ -184,55 +138,6 @@
         </p>
         {% endif %}
       </div>
-
-
-      <div class="bids-section">
-        <h2>Your Quote Bids</h2>
-        
-        <div class="filters">
-            <form method="get">
-                <label>Sort by:</label>
-                <select name="sort" onchange="this.form.submit()">
-                    <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Newest First</option>
-                    <option value="lowest" {% if request.GET.sort == 'lowest' %}selected{% endif %}>Lowest Price</option>
-                    <option value="highest" {% if request.GET.sort == 'highest' %}selected{% endif %}>Highest Price</option>
-                </select>
-                
-                <label>Filter by status:</label>
-                <select name="status" onchange="this.form.submit()">
-                    <option value="">All</option>
-                    <option value="submitted" {% if request.GET.status == 'submitted' %}selected{% endif %}>Submitted</option>
-                    <option value="accepted" {% if request.GET.status == 'accepted' %}selected{% endif %}>Accepted</option>
-                    <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
-                </select>
-            </form>
-        </div>
-    
-        {% if bids %}
-        <div class="bid-list">
-            {% for bid in bids %}
-            <div class="bid-card {% if bid.status == 'accepted' %}accepted{% elif bid.status == 'rejected' %}rejected{% endif %}">
-                <h3>{{ bid.quote.product }}</h3>
-                <p>Supplier: {{ bid.supplier.company_name }}</p>
-                <p>Bid Amount: {{ bid.quote.currency }} {{ bid.bid_amount }}</p>
-                <p>Delivery Time: {{ bid.delivery_time }} days</p>
-                <p>Status: <span class="status">{{ bid.get_status_display }}</span></p>
-                
-                {% if bid.status == 'submitted' %}
-                <form method="post" action="{% url 'accept_bid' bid.id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="accept-btn">Accept Bid</button>
-                </form>
-                {% endif %}
-                
-                <small>Submitted on {{ bid.submitted_at|date:"M d, Y" }}</small>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <p>No bids available for your quotes.</p>
-        {% endif %}
-    </div>
 
       <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
     </div>
