@@ -50,3 +50,22 @@ class QuoteRequest(models.Model):
     def get_category_display(self):
         # Add this to display human-readable category names
         return self.category.replace('_', ' ').title()
+    
+    
+# Add to manufacturer/models.py
+class Feedback(models.Model):
+    RATING_CHOICES = [
+        (1, '1 - Poor'),
+        (2, '2 - Fair'),
+        (3, '3 - Good'),
+        (4, '4 - Very Good'),
+        (5, '5 - Excellent'),
+    ]
+    
+    bid = models.OneToOneField('supplier.Bid', on_delete=models.CASCADE)
+    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES)
+    comments = models.TextField()
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Feedback for {self.bid.supplier.company_name} by {self.bid.quote.manufacturer.company_name}"

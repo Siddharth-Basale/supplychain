@@ -79,6 +79,19 @@
         
         <a href="{% url 'supplier_profile' %}" class="bid-btn">View/Edit Profile</a>
 
+        <!-- Add this to the supplier dashboard where you want to show the rating -->
+        <div class="profile-info">
+            <h2>Your Rating</h2>
+            <p>
+                Average Rating: 
+                {% if average_rating %}
+                    {{ average_rating|floatformat:1 }}/5 ({{ rating_count }} ratings)
+                {% else %}
+                    Not rated yet
+                {% endif %}
+            </p>
+        </div>
+
         <div class="filters">
             <form method="get">
                 <label>Filter by category:</label>

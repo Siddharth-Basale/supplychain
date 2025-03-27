@@ -32,3 +32,16 @@ class Bid(models.Model):
 
     def __str__(self):
         return f"Bid for {self.quote.product} by {self.supplier.company_name}"
+    
+    
+class SupplierRating(models.Model):
+    manufacturer = models.ForeignKey('manufacturer.Manufacturer', on_delete=models.CASCADE)
+    supplier = models.ForeignKey('Supplier', on_delete=models.CASCADE)
+    rating = models.PositiveSmallIntegerField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('manufacturer', 'supplier')  # One rating per manufacturer-supplier pair
+    
+    def __str__(self):
+        return f"{self.rating} stars from {self.manufacturer.company_name} to {self.supplier.company_name}"

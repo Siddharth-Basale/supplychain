@@ -1,0 +1,23 @@
+.rating-stars {
+    display: inline-flex;
+    direction: rtl; /* Right to left for better hover effect */
+    unicode-bidi: bidi-override;
+}
+
+.rating-stars .star {
+    color: #ddd;
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.2s;
+    margin: 0 2px;
+}
+
+.rating-stars .star:hover,
+.rating-stars .star.active,
+.rating-stars .star:hover ~ .star {
+    color: #ffc107;
+}
+
+.rating-stars .star.active ~ .star {
+    color: #ffc107;
+}

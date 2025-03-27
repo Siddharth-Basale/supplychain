@@ -1,13 +1,20 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
+from django.contrib.auth.models import User
+from django.db import models  # For Avg aggregation
+from django.db.models import Avg  # Alternative for Avg
+from django.conf import settings
+from django.http import JsonResponse
+
 from .forms import ManufacturerRegistrationForm, ManufacturerLoginForm
 from .models import Manufacturer, QuoteRequest
-from supplier.models import Supplier
-from django.contrib.auth.models import User
-
-from django.conf import settings
+from supplier.models import Supplier, Bid, SupplierRating
 from utils.email import send_email
+
+from supplier.forms import FeedbackForm  # Add this import
+from .models import Feedback  # Import from current app
+
 
 def manufacturer_register(request):
     if request.method == 'POST':
@@ -93,52 +100,96 @@ def accept_bid(request, bid_id):
             messages.error(request, "You don't have permission to accept this bid")
             return redirect('manufacturer_dashboard')
         
-        # Update bid status
-        bid.status = 'accepted'
-        bid.save()
-        
-        # Update quote status
-        quote.status = 'awarded'
-        quote.save()
-        
-        # Reject other bids for this quote
-        Bid.objects.filter(quote=quote).exclude(id=bid_id).update(status='rejected')
-        
-        # Send notification to supplier
-        send_email(
-            subject=f"Your Bid for {quote.product} Has Been Accepted",
-            to_email=bid.supplier.user.email,
-            template_name="emails/bid_status_update.html",
-            context={
-                'supplier': bid.supplier,
-                'manufacturer': quote.manufacturer,
-                'quote': quote,
-                'bid': bid
-            }
-        )
-        
-        # Send notifications to rejected suppliers
-        rejected_bids = Bid.objects.filter(quote=quote, status='rejected')
-        for rejected_bid in rejected_bids:
-            send_email(
-                subject=f"Your Bid for {quote.product} Has Been Rejected",
-                to_email=rejected_bid.supplier.user.email,
-                template_name="emails/bid_status_update.html",
-                context={
-                    'supplier': rejected_bid.supplier,
-                    'manufacturer': quote.manufacturer,
+        if request.method == 'POST':
+            form = FeedbackForm(request.POST)
+            if form.is_valid():
+                # Create feedback
+                Feedback.objects.create(
+                    bid=bid,
+                    rating=form.cleaned_data['rating'],
+                    comments=form.cleaned_data['comments']
+                )
+                
+                # Update bid status
+                bid.status = 'accepted'
+                bid.save()
+                
+                # Update quote status
+                quote.status = 'awarded'
+                quote.save()
+                
+                # Reject other bids for this quote
+                Bid.objects.filter(quote=quote).exclude(id=bid_id).update(status='rejected')
+                
+                # Send notification to supplier
+                send_email(
+                    subject=f"Your Bid for {quote.product} Has Been Accepted",
+                    to_email=bid.supplier.user.email,
+                    template_name="emails/bid_status_update.html",
+                    context={
+                        'supplier': bid.supplier,
+                        'manufacturer': quote.manufacturer,
+                        'quote': quote,
+                        'bid': bid
+                    }
+                )
+                
+                # Send feedback email to supplier
+                send_email(
+                    subject=f"Feedback Received from {quote.manufacturer.company_name}",
+                    to_email=bid.supplier.user.email,
+                    template_name="emails/feedback_received.html",
+                    context={
+                        'supplier': bid.supplier,
+                        'manufacturer': quote.manufacturer,
+                        'quote': quote,
+                        'bid': bid,
+                        'rating': form.cleaned_data['rating'],
+                        'comments': form.cleaned_data['comments']
+                    }
+                )
+                
+                # Send notifications to rejected suppliers
+                rejected_bids = Bid.objects.filter(quote=quote, status='rejected')
+                for rejected_bid in rejected_bids:
+                    send_email(
+                        subject=f"Your Bid for {quote.product} Has Been Rejected",
+                        to_email=rejected_bid.supplier.user.email,
+                        template_name="emails/bid_status_update.html",
+                        context={
+                            'supplier': rejected_bid.supplier,
+                            'manufacturer': quote.manufacturer,
+                            'quote': quote,
+                            'bid': rejected_bid
+                        }
+                    )
+                
+                messages.success(request, 'Bid accepted and feedback submitted successfully!')
+                return redirect('manufacturer_dashboard')
+            else:
+                messages.error(request, 'Please provide valid feedback')
+                # ADDED RETURN STATEMENT
+                return render(request, 'manufacturer/feedback_form.html', {
+                    'bid': bid,
                     'quote': quote,
-                    'bid': rejected_bid
-                }
-            )
+                    'form': form
+                })
         
-        messages.success(request, 'Bid accepted successfully!')
+        # GET request handling
+        if bid.status != 'accepted':
+            form = FeedbackForm()
+            return render(request, 'manufacturer/feedback_form.html', {
+                'bid': bid,
+                'quote': quote,
+                'form': form
+            })
+        else:
+            messages.info(request, 'This bid has already been accepted')
+            return redirect('manufacturer_dashboard')
+                
     except Bid.DoesNotExist:
         messages.error(request, 'Bid not found')
-    
-    return redirect('manufacturer_dashboard')
-
-
+        return redirect('manufacturer_dashboard')
 
 def list_products(request):
     if not request.user.is_authenticated:
@@ -296,12 +347,56 @@ def view_supplier_profile(request, supplier_id):
     try:
         manufacturer = Manufacturer.objects.get(user=request.user)
         supplier = Supplier.objects.get(id=supplier_id)
-        quote_id = request.GET.get('quote_id')  # Get from URL parameter
+        quote_id = request.GET.get('quote_id')
+        
+        # Get current rating if exists
+        current_rating = 0
+        try:
+            rating_obj = SupplierRating.objects.get(manufacturer=manufacturer, supplier=supplier)
+            current_rating = rating_obj.rating
+        except SupplierRating.DoesNotExist:
+            pass
+            
+        # Calculate average rating
+        ratings = SupplierRating.objects.filter(supplier=supplier)
+        average_rating = ratings.aggregate(Avg('rating'))['rating__avg']  # Using direct Avg import
+        
         return render(request, 'manufacturer/supplier_profile.html', {
             'supplier': supplier,
             'manufacturer': manufacturer,
-            'quote_id': quote_id
+            'quote_id': quote_id,
+            'current_rating': current_rating,
+            'average_rating': round(average_rating, 1) if average_rating else None
         })
     except Supplier.DoesNotExist:
         messages.error(request, "Supplier not found")
         return redirect('manufacturer_dashboard')
+
+from django.http import JsonResponse
+from supplier.models import SupplierRating
+
+def rate_supplier(request, supplier_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+    
+    try:
+        manufacturer = Manufacturer.objects.get(user=request.user)
+        supplier = Supplier.objects.get(id=supplier_id)
+        rating = int(request.POST.get('rating'))
+        
+        if not 1 <= rating <= 5:
+            return JsonResponse({'error': 'Invalid rating value'}, status=400)
+        
+        # Update or create rating
+        SupplierRating.objects.update_or_create(
+            manufacturer=manufacturer,
+            supplier=supplier,
+            defaults={'rating': rating}
+        )
+        
+        return JsonResponse({'success': True, 'rating': rating})
+    
+    except (Manufacturer.DoesNotExist, Supplier.DoesNotExist):
+        return JsonResponse({'error': 'Invalid manufacturer or supplier'}, status=404)
+    except ValueError:
+        return JsonResponse({'error': 'Invalid rating format'}, status=400)

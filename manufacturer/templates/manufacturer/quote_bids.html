@@ -81,13 +81,14 @@
                 <p><strong>Comments:</strong> {{ bid.comments }}</p>
                 {% endif %}
                 
+                <!-- Update the accept bid form in quote_bids.html -->
                 {% if bid.status == 'submitted' and quote.status == 'open' %}
                 <form method="post" action="{% url 'accept_bid' bid.id %}">
                     {% csrf_token %}
-                    <button type="submit" class="accept-btn">Accept Bid</button>
+                    <button type="submit" class="accept-btn">Accept Bid & Provide Feedback</button>
                 </form>
                 {% endif %}
-                
+                                
                 <small>Submitted on {{ bid.submitted_at|date:"M d, Y" }}</small>
             </div>
             {% endfor %}

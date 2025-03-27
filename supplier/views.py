@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from .forms import SupplierRegistrationForm, SupplierLoginForm, BidForm
-from .models import Supplier, Bid
+from .models import Supplier, Bid, SupplierRating
 from django.contrib.auth.models import User
 from manufacturer.models import QuoteRequest, Manufacturer
 from django.contrib import messages
@@ -9,6 +9,8 @@ from django.contrib import messages
 # Add at the top
 from django.conf import settings
 from utils.email import send_email
+
+from django.db import models  # Add this import if not already present
 
 # Update supplier_register function
 def supplier_register(request):
@@ -87,15 +89,24 @@ def supplier_dashboard(request):
         
         your_bids = Bid.objects.filter(supplier=supplier).select_related('quote')
         
+        # Calculate average rating
+        ratings = SupplierRating.objects.filter(supplier=supplier)
+        average_rating = ratings.aggregate(models.Avg('rating'))['rating__avg']
+        rating_count = ratings.count()
+        
         return render(request, 'supplier/dashboard.html', {
             'supplier': supplier,
             'open_quotes': open_quotes,
             'your_bids': your_bids,
             'categories': categories,
-            'current_category': category_filter
+            'current_category': category_filter,
+            'average_rating': average_rating,
+            'rating_count': rating_count
         })
     except Supplier.DoesNotExist:
         return redirect('supplier_login')
+    
+    
 
 # Update submit_bid function
 def submit_bid(request, quote_id):
@@ -153,12 +164,19 @@ def submit_bid(request, quote_id):
     })
     
     
+from manufacturer.models import Feedback
+    
 def view_profile(request):
     if not request.user.is_authenticated:
         return redirect('supplier_login')
     
     supplier = Supplier.objects.get(user=request.user)
-    return render(request, 'supplier/profile.html', {'supplier': supplier})
+    feedback_received = Feedback.objects.filter(bid__supplier=supplier).select_related('bid__quote__manufacturer')
+    
+    return render(request, 'supplier/profile.html', {
+        'supplier': supplier,
+        'feedback_received': feedback_received
+    })
 
 def edit_profile(request):
     if not request.user.is_authenticated:

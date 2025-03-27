@@ -15,6 +15,13 @@
             text-decoration: none;
             border-radius: 4px;
         }
+        .feedback-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+        .feedback-item:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
@@ -39,6 +46,23 @@
         <div class="profile-info">
             <h2>Key Products</h2>
             <p>{{ supplier.key_services }}</p>
+        </div>
+
+        <!-- Feedback Received Section -->
+        <div class="profile-info">
+            <h2>Feedback Received</h2>
+            {% if feedback_received %}
+                {% for feedback in feedback_received %}
+                <div class="feedback-item">
+                    <p><strong>From:</strong> {{ feedback.bid.quote.manufacturer.company_name }}</p>
+                    <p><strong>Rating:</strong> {{ feedback.get_rating_display }}</p>
+                    <p><strong>Comments:</strong> {{ feedback.comments }}</p>
+                    <p><small>Received on {{ feedback.submitted_at|date:"M d, Y" }}</small></p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No feedback received yet.</p>
+            {% endif %}
         </div>
     </div>
 </body>

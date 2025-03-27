@@ -31,3 +31,19 @@ class BidForm(forms.Form):
     bid_amount = forms.DecimalField(label="Your Price", min_value=0)
     delivery_time = forms.IntegerField(label="Delivery Time (days)", min_value=1)
     comments = forms.CharField(widget=forms.Textarea, required=False)
+    
+# supplier/forms.py
+from django import forms
+from manufacturer.models import Feedback
+
+class FeedbackForm(forms.Form):
+    rating = forms.ChoiceField(
+        choices=Feedback.RATING_CHOICES,
+        widget=forms.RadioSelect,
+        required=True
+    )
+    comments = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 4}),
+        required=True,
+        label='Your Feedback'
+    )

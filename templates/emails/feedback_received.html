@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Feedback Received</title>
+</head>
+<body>
+    <h2>Feedback Received from {{ manufacturer.company_name }}</h2>
+    <p>Dear {{ supplier.first_name }},</p>
+    <p>You have received feedback for your accepted bid on <strong>{{ quote.product }}</strong>.</p>
+    
+    <h3>Feedback Details:</h3>
+    <p><strong>Rating:</strong> {{ rating }}/5</p>
+    <p><strong>Comments:</strong></p>
+    <blockquote>{{ comments }}</blockquote>
+    
+    <h3>Bid Details:</h3>
+    <ul>
+        <li>Product: {{ quote.product }}</li>
+        <li>Your Bid Amount: {{ quote.currency }} {{ bid.bid_amount }}</li>
+        <li>Delivery Time: {{ bid.delivery_time }} days</li>
+    </ul>
+    
+    <p>Thank you for your participation in our platform.</p>
+    <p>Best regards,<br>Supply Chain Team</p>
+</body>
+</html>
