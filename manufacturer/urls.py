@@ -18,4 +18,5 @@ urlpatterns = [
     path('profile/edit/', views.edit_profile, name='manufacturer_edit_profile'),
     path('accept-bid/<int:bid_id>/', views.accept_bid, name='accept_bid'),
     path('supplier-profile/<int:supplier_id>/', views.view_supplier_profile, name='view_supplier_profile'),
+    path('commodity-price/', views.get_commodity_price, name='commodity_price'),
 ]

@@ -305,3 +305,17 @@ def view_supplier_profile(request, supplier_id):
     except Supplier.DoesNotExist:
         messages.error(request, "Supplier not found")
         return redirect('manufacturer_dashboard')
+    
+    
+from django.http import JsonResponse
+from .utils import CommodityPriceFetcher  # Adjust import based on your file location
+
+def get_commodity_price(request):
+    """AJAX endpoint to fetch commodity price"""
+    commodity = request.GET.get('commodity', '')
+    if not commodity:
+        return JsonResponse({'error': 'Commodity name required'}, status=400)
+    
+    fetcher = CommodityPriceFetcher()
+    price_data = fetcher.fetch_price(commodity)
+    return JsonResponse(price_data)
