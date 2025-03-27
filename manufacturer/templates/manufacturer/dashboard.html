@@ -1,145 +1,206 @@
-<!-- manufacturer/templates/manufacturer/dashboard.html -->
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Manufacturer Dashboard</title>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manufacturer Dashboard | Supply Chain Portal</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-        margin: 0;
-        padding: 20px;
-        background-color: #f5f5f5;
-      }
-      .dashboard-container {
-        max-width: 800px;
-        margin: 0 auto;
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      }
-      h1 {
-        color: #333;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
-      }
-      .thank-you-message {
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 30px;
-      }
-      .action-links {
-        list-style-type: none;
-        padding-left: 0;
-      }
-      .action-links li {
-        margin-bottom: 15px;
-      }
-      .action-link {
-        color: #007bff;
-        text-decoration: none;
-        font-weight: 500;
-        transition: color 0.3s;
-      }
-      .action-link:hover {
-        color: #0056b3;
-        text-decoration: underline;
-      }
-      .company-info {
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-radius: 8px;
-        margin-top: 20px;
-      }
-      .logout-btn {
-        display: inline-block;
-        margin-top: 20px;
-        padding: 8px 15px;
-        background: #dc3545;
-        color: white;
-        text-decoration: none;
-        border-radius: 4px;
-      }
-      .logout-btn:hover {
-        background: #c82333;
-      }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Inter', sans-serif;
+        }
+        .dashboard-card {
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+        .dashboard-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+        }
+        .action-link {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .action-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        .action-link:hover::after {
+            width: 100%;
+        }
+        .animate-pulse-slow {
+            animation: pulse 3s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
     </style>
-  </head>
-  <body>
-    <div class="dashboard-container">
-      <h1>Welcome, {{ manufacturer.company_name }}</h1>
+</head>
+<body class="min-h-screen flex flex-col bg-gray-50">
+    <!-- Navigation -->
+    <nav class="relative bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-blue-700">Supply Chain Portal</h1>
+                </div>
+                <div class="hidden md:flex space-x-6 nav-menu">
+                    <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Home</a>
+                    <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">About</a>
+                    <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Services</a>
+                    <a href="#" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Contact</a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-      <li>
-        <a href="{% url 'manufacturer_profile' %}" class="action-link">
-            View/Edit Profile
-        </a>
-      </li>
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Profile Section -->
+            <div class="md:col-span-1 space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-lg dashboard-card">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-2xl font-bold text-blue-600">
+                                {{ manufacturer.first_name.0 }}{{ manufacturer.last_name.0 }}
+                            </span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-800">
+                                {{ manufacturer.first_name }} {{ manufacturer.last_name }}
+                            </h2>
+                            <p class="text-gray-500">{{ manufacturer.business_type }}</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 space-y-3">
+                        <a href="{% url 'manufacturer_profile' %}" class="block text-blue-600 hover:text-blue-800 action-link">
+                            View/Edit Profile
+                        </a>
+                        <a href="{% url 'logout' %}" class="block text-red-600 hover:text-red-800 action-link">
+                            Logout
+                        </a>
+                    </div>
+                </div>
 
-      <div class="thank-you-message">
-        <h2>Thank You</h2>
-        <p>Thank you for registering with us. You may now proceed to:</p>
+                <!-- Company Info Card -->
+                <div class="bg-white p-6 rounded-xl shadow-lg dashboard-card">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Company Details</h3>
+                    <div class="space-y-2 text-gray-600">
+                        <p><strong>Location:</strong> {{ manufacturer.city }}, {{ manufacturer.state }}</p>
+                        <p><strong>Phone:</strong> {{ manufacturer.phone_number }}</p>
+                        {% if manufacturer.website %}
+                        <p>
+                            <strong>Website:</strong>
+                            <a href="{{ manufacturer.website }}" target="_blank" class="text-blue-600 hover:underline">
+                                {{ manufacturer.website }}
+                            </a>
+                        </p>
+                        {% endif %}
+                        <p><strong>Key Products:</strong> {{ manufacturer.key_products }}</p>
+                    </div>
+                </div>
+            </div>
 
-        <ul class="action-links">
-          <li>
-            <a
-              href="{% url 'manufacturer_request_quote' %}"
-              class="action-link"
-            >
-              Post a request for quotation
-            </a>
-          </li>
-          <li>
-            <a
-              href="{% url 'manufacturer_quote_history' %}"
-              class="action-link"
-            >
-              View your quote history
-            </a>
-          </li>
-          <li>
-            <a
-              href="{% url 'manufacturer_list_products' %}"
-              class="action-link"
-            >
-              List your products (you will be asked to upgrade to a paid
-              membership first)
-            </a>
-          </li>
-          <li>
-            <a
-              href="{% url 'manufacturer_complete_profile' %}"
-              class="action-link"
-            >
-              Complete your company profile
-            </a>
-          </li>
-        </ul>
-      </div>
+            <!-- Actions and Welcome Section -->
+            <div class="md:col-span-2 space-y-6">
+                <div class="bg-white p-8 rounded-xl shadow-lg dashboard-card animate-pulse-slow">
+                    <h1 class="text-3xl font-extrabold text-blue-700 mb-4">
+                        Welcome, {{ manufacturer.company_name }}
+                    </h1>
+                    <p class="text-gray-600 mb-6">
+                        Your gateway to streamlined supply chain management starts here. 
+                        Explore our tools to enhance your business connections and opportunities.
+                    </p>
+                </div>
 
-      <div class="company-info">
-        <h3>Your Company Information</h3>
-        <p>
-          <strong>Contact:</strong> {{ manufacturer.first_name }} {{ manufacturer.last_name }}
-        </p>
-        <p>
-          <strong>Location:</strong> {{ manufacturer.city }}, {{ manufacturer.state }}
-        </p>
-        <p><strong>Business Type:</strong> {{ manufacturer.business_type }}</p>
-        <p><strong>Key Products:</strong> {{ manufacturer.key_products }}</p>
-        <p><strong>Phone:</strong> {{ manufacturer.phone_number }}</p>
-        {% if manufacturer.website %}
-        <p>
-          <strong>Website:</strong>
-          <a href="{{ manufacturer.website }}" target="_blank"
-            >{{ manufacturer.website }}</a
-          >
-        </p>
-        {% endif %}
-      </div>
+                <!-- Quick Actions -->
+                <div class="bg-white p-6 rounded-xl shadow-lg dashboard-card">
+                    <h2 class="text-2xl font-semibold text-blue-700 mb-6">Quick Actions</h2>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <a href="{% url 'manufacturer_request_quote' %}" 
+                           class="bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition flex items-center space-x-4 action-link">
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <span class="text-blue-800">Request a Quotation</span>
+                        </a>
+                        <a href="{% url 'manufacturer_quote_history' %}" 
+                           class="bg-green-50 p-4 rounded-lg hover:bg-green-100 transition flex items-center space-x-4 action-link">
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <span class="text-green-800">Quote History</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
-      <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
-    </div>
-  </body>
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 grid md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-blue-400">Home</a></li>
+                    <li><a href="#" class="hover:text-blue-400">About Us</a></li>
+                    <li><a href="#" class="hover:text-blue-400">Services</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Support</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-blue-400">Help Center</a></li>
+                    <li><a href="#" class="hover:text-blue-400">Contact Support</a></li>
+                    <li><a href="#" class="hover:text-blue-400">FAQ</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Connect With Us</h3>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-blue-400 hover:text-blue-600">Twitter</a>
+                    <a href="#" class="text-blue-400 hover:text-blue-600">LinkedIn</a>
+                    <a href="#" class="text-blue-400 hover:text-blue-600">Facebook</a>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-8 text-sm text-gray-400">
+            © 2024 Supply Chain Portal. All Rights Reserved.
+        </div>
+    </footer>
+    <script>
+      // Mobile menu toggle
+      const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+      const mobileNav = document.getElementById('mobile-nav');
+
+      mobileMenuToggle.addEventListener('click', () => {
+          mobileNav.classList.toggle('active');
+      });
+
+      // Close mobile menu when clicking outside
+      document.addEventListener('click', (event) => {
+          const isClickInsideMenu = mobileNav.contains(event.target);
+          const isClickOnToggle = mobileMenuToggle.contains(event.target);
+          
+          if (!isClickInsideMenu && !isClickOnToggle) {
+              mobileNav.classList.remove('active');
+          }
+      });
+  </script>
+</body>
 </html>

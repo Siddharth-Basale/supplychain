@@ -1,69 +1,218 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Submit Bid</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Bid | Supply Chain Portal</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Inter', sans-serif;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        .dashboard-card {
+            transition: all 0.3s ease;
+            transform-origin: center;
         }
-        .form-group {
-            margin-bottom: 15px;
+        .dashboard-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.1);
         }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+        .action-link {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
-        input, textarea {
+        .action-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #10b981;
+            transition: width 0.3s ease;
+        }
+        .action-link:hover::after {
             width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-        }
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Submit Bid for {{ quote.product }}</h1>
-        <p><strong>Quantity:</strong> {{ quote.quantity }} {{ quote.unit }}</p>
-        <p><strong>Deadline:</strong> {{ quote.deadline|date:"M d, Y" }}</p>
-        
-        <form method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="id_bid_amount">Your Price ({{ quote.currency }})</label>
-                {{ form.bid_amount }}
+<body class="min-h-screen flex flex-col bg-gray-50">
+    <!-- Navigation Remains the Same -->
+    <nav class="relative bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-green-700">Supply Chain Portal</h1>
+                </div>
+                <div class="hidden md:flex space-x-6 nav-menu">
+                    <a href="#" class="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium">Home</a>
+                    <a href="#" class="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium">About</a>
+                    <a href="#" class="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium">Services</a>
+                    <a href="#" class="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium">Contact</a>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="id_delivery_time">Delivery Time (days)</label>
-                {{ form.delivery_time }}
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Profile Section -->
+            <div class="md:col-span-1 space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-lg dashboard-card">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                            <span class="text-2xl font-bold text-green-600">
+                                {{ supplier.company_name.0 }}
+                            </span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-800">
+                                {{ supplier.company_name }}
+                            </h2>
+                            <p class="text-gray-500">Supplier</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 space-y-3">
+                        <a href="{% url 'supplier_profile' %}" class="block text-green-600 hover:text-green-800 action-link">
+                            View/Edit Profile
+                        </a>
+                        <a href="{% url 'logout' %}" class="block text-red-600 hover:text-red-800 action-link">
+                            Logout
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Bid Guidance Card -->
+                <div class="bg-white p-6 rounded-xl shadow-lg dashboard-card">
+                    <h3 class="text-lg font-semibold text-green-700 mb-4">Bid Submission Tips</h3>
+                    <ul class="text-sm text-gray-600 space-y-2 list-disc pl-4">
+                        <li>Provide competitive pricing</li>
+                        <li>Realistic delivery timelines</li>
+                        <li>Clear and concise comments</li>
+                        <li>Highlight your unique value</li>
+                    </ul>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="id_comments">Comments (Optional)</label>
-                {{ form.comments }}
+
+            <!-- Bid Submission Section -->
+            <div class="md:col-span-2 space-y-6">
+                <div class="bg-white p-8 rounded-xl shadow-lg dashboard-card">
+                    <h1 class="text-3xl font-extrabold text-green-700 mb-4">
+                        Submit Bid for {{ quote.product }}
+                    </h1>
+                    <div class="text-gray-600 mb-6 bg-green-50 p-4 rounded-lg">
+                        <div class="grid grid-cols-2 gap-4">
+                            <p><strong>Quantity:</strong> {{ quote.quantity }} {{ quote.unit }}</p>
+                            <p><strong>Deadline:</strong> {{ quote.deadline|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bid Form with Enhanced Inputs -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="relative">
+                                <label for="id_bid_amount" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Your Price ({{ quote.currency }})
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                                        <!-- {{ quote.currency }} -->
+                                    </span>
+                                    <input 
+                                        type="number" 
+                                        name="bid_amount" 
+                                        id="id_bid_amount" 
+                                        step="0.01" 
+                                        min="0" 
+                                        required
+                                        class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                        placeholder="Enter your competitive price"
+                                    >
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Provide a competitive and realistic price</p>
+                            </div>
+                            <div>
+                                <label for="id_delivery_time" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Delivery Time (days)
+                                </label>
+                                <input 
+                                    type="number" 
+                                    name="delivery_time" 
+                                    id="id_delivery_time" 
+                                    min="1" 
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    placeholder="Estimated delivery days"
+                                >
+                                <p class="text-xs text-gray-500 mt-1">Days required to complete delivery</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="id_comments" class="block text-sm font-medium text-gray-700 mb-2">
+                                Comments (Optional)
+                            </label>
+                            <textarea 
+                                name="comments" 
+                                id="id_comments" 
+                                rows="4"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder="Add any additional notes or clarifications about your bid"
+                            ></textarea>
+                            <p class="text-xs text-gray-500 mt-1">Provide context or additional information</p>
+                        </div>
+
+                        <div class="flex space-x-4">
+                            <button type="submit" class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition">
+                                Submit Bid
+                            </button>
+                            <a href="{% url 'supplier_dashboard' %}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300 transition">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <button type="submit">Submit Bid</button>
-        </form>
-        
-        <a href="{% url 'supplier_dashboard' %}">Back to Dashboard</a>
-    </div>
+        </div>
+    </main>
+
+    <!-- Footer Remains the Same -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 grid md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-green-400">Home</a></li>
+                    <li><a href="#" class="hover:text-green-400">About Us</a></li>
+                    <li><a href="#" class="hover:text-green-400">Services</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Support</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-green-400">Help Center</a></li>
+                    <li><a href="#" class="hover:text-green-400">Contact Support</a></li>
+                    <li><a href="#" class="hover:text-green-400">FAQ</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Connect With Us</h3>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-green-400 hover:text-green-600">Twitter</a>
+                    <a href="#" class="text-green-400 hover:text-green-600">LinkedIn</a>
+                    <a href="#" class="text-green-400 hover:text-green-600">Facebook</a>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-8 text-sm text-gray-400">
+            © 2024 Supply Chain Portal. All Rights Reserved.
+        </div>
+    </footer>
 </body>
 </html>

@@ -1,45 +1,182 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Supplier Profile</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Profile | Supply Chain Portal</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial; padding: 20px; }
-        .profile-container { max-width: 800px; margin: 0 auto; }
-        .profile-header { margin-bottom: 30px; }
-        .profile-info { margin-bottom: 20px; }
-        .edit-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Inter', sans-serif;
+        }
+        .dashboard-card {
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+        .dashboard-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+        }
+        .action-link {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .action-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #10b981;
+            transition: width 0.3s ease;
+        }
+        .action-link:hover::after {
+            width: 100%;
         }
     </style>
 </head>
-<body>
-    <div class="profile-container">
-        <div class="profile-header">
-            <h1>{{ supplier.company_name }}</h1>
-            <p>{{ supplier.first_name }} {{ supplier.last_name }}</p>
-            <a href="{% url 'supplier_edit_profile' %}" class="edit-btn">Edit Profile</a>
-            <a href="{% url 'supplier_dashboard' %}" class="edit-btn">Back to Dashboard</a>
+<body class="min-h-screen flex flex-col bg-gray-50">
+    <!-- Navigation -->
+    <nav class="relative bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-green-700">Supply Chain Portal</h1>
+                </div>
+                <div class="hidden md:flex space-x-6 nav-menu">
+                    <a href="#" class="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium">Home</a>
+                    <a href="#" class="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium">About</a>
+                    <a href="#" class="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium">Services</a>
+                    <a href="#" class="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium">Contact</a>
+                </div>
+            </div>
         </div>
-        
-        <div class="profile-info">
-            <h2>Company Information</h2>
-            <p><strong>Location:</strong> {{ supplier.city }}, {{ supplier.state }}</p>
-            <p><strong>Business Type:</strong> {{ supplier.business_type }}</p>
-            <p><strong>Phone:</strong> {{ supplier.phone_number }}</p>
-            {% if supplier.website %}
-                <p><strong>Website:</strong> <a href="{{ supplier.website }}" target="_blank">{{ supplier.website }}</a></p>
-            {% endif %}
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Profile Section -->
+            <div class="md:col-span-1 space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-lg dashboard-card">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                            <span class="text-2xl font-bold text-green-600">
+                                {{ supplier.company_name.0 }}
+                            </span>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-800">
+                                {{ supplier.company_name }}
+                            </h2>
+                            <p class="text-gray-500">Supplier Profile</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 space-y-3">
+                        <a href="{% url 'supplier_edit_profile' %}" class="block text-green-600 hover:text-green-800 action-link">
+                            Edit Profile
+                        </a>
+                        <a href="{% url 'supplier_dashboard' %}" class="block text-blue-600 hover:text-blue-800 action-link">
+                            Back to Dashboard
+                        </a>
+                        <a href="{% url 'logout' %}" class="block text-red-600 hover:text-red-800 action-link">
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Details Section -->
+            <div class="md:col-span-2 space-y-6">
+                <div class="bg-white p-8 rounded-xl shadow-lg dashboard-card">
+                    <h1 class="text-3xl font-extrabold text-green-700 mb-4">
+                        Profile Details
+                    </h1>
+                    <p class="text-gray-600 mb-6">
+                        Review and manage your company information and key details.
+                    </p>
+                </div>
+
+                <!-- Company Information Card -->
+                <div class="bg-white p-6 rounded-xl shadow-lg dashboard-card">
+                    <h2 class="text-2xl font-semibold text-green-700 mb-6">Company Information</h2>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-gray-600 mb-2"><strong>Full Name:</strong></p>
+                            <p class="text-gray-800">{{ supplier.first_name }} {{ supplier.last_name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 mb-2"><strong>Company Name:</strong></p>
+                            <p class="text-gray-800">{{ supplier.company_name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 mb-2"><strong>Location:</strong></p>
+                            <p class="text-gray-800">{{ supplier.city }}, {{ supplier.state }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 mb-2"><strong>Business Type:</strong></p>
+                            <p class="text-gray-800">{{ supplier.business_type }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 mb-2"><strong>Phone Number:</strong></p>
+                            <p class="text-gray-800">{{ supplier.phone_number }}</p>
+                        </div>
+                        {% if supplier.website %}
+                        <div>
+                            <p class="text-gray-600 mb-2"><strong>Website:</strong></p>
+                            <a href="{{ supplier.website }}" target="_blank" class="text-green-600 hover:text-green-800">
+                                {{ supplier.website }}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Key Products Card -->
+                <div class="bg-white p-6 rounded-xl shadow-lg dashboard-card">
+                    <h2 class="text-2xl font-semibold text-green-700 mb-6">Key Products & Services</h2>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <p class="text-gray-800">{{ supplier.key_services }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div class="profile-info">
-            <h2>Key Products</h2>
-            <p>{{ supplier.key_services }}</p>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 grid md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-green-400">Home</a></li>
+                    <li><a href="#" class="hover:text-green-400">About Us</a></li>
+                    <li><a href="#" class="hover:text-green-400">Services</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Support</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-green-400">Help Center</a></li>
+                    <li><a href="#" class="hover:text-green-400">Contact Support</a></li>
+                    <li><a href="#" class="hover:text-green-400">FAQ</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Connect With Us</h3>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-green-400 hover:text-green-600">Twitter</a>
+                    <a href="#" class="text-green-400 hover:text-green-600">LinkedIn</a>
+                    <a href="#" class="text-green-400 hover:text-green-600">Facebook</a>
+                </div>
+            </div>
         </div>
-    </div>
+        <div class="text-center mt-8 text-sm text-gray-400">
+            © 2024 Supply Chain Portal. All Rights Reserved.
+        </div>
+    </footer>
 </body>
 </html>

@@ -10,7 +10,9 @@ from django.contrib import messages
 from django.conf import settings
 from utils.email import send_email
 
-# Update supplier_register function
+from django.contrib.auth import login
+from supplier.backends import SupplierBackend
+
 def supplier_register(request):
     if request.method == 'POST':
         form = SupplierRegistrationForm(request.POST)
@@ -35,6 +37,9 @@ def supplier_register(request):
                 wallet_address=form.cleaned_data['wallet_address']
             )
             
+            # Log the user in with the Supplier backend
+            login(request, user, backend='supplier.backends.SupplierBackend')
+            
             # Send welcome email
             send_email(
                 subject="Your Supplier Account Has Been Created",
@@ -45,9 +50,16 @@ def supplier_register(request):
                     'user': user
                 }
             )
+            
+            messages.success(request, 'Registration successful! Welcome to your dashboard.')
+            return redirect('supplier_dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = SupplierRegistrationForm()
     return render(request, 'supplier/register.html', {'form': form})
+
+from django.contrib import messages
 
 def supplier_login(request):
     if request.method == 'POST':
@@ -58,13 +70,19 @@ def supplier_login(request):
             user = authenticate(request, username=username, password=password)
             
             if user is not None:
-                # Check if this user is a supplier
+                # Additional check to prevent admin login
+                if user.is_staff:
+                    messages.error(request, "Admin users must login through the admin portal")
+                    return render(request, 'supplier/login.html', {'form': form})
+                
                 try:
-                    supplier = Supplier.objects.get(user=user)
-                    login(request, user)
+                    Supplier.objects.get(user=user)
+                    login(request, user, backend='supplier.backends.SupplierBackend')
                     return redirect('supplier_dashboard')
                 except Supplier.DoesNotExist:
                     form.add_error(None, "This account is not registered as a supplier")
+            else:
+                form.add_error(None, "Invalid username or password")
     else:
         form = SupplierLoginForm()
     return render(request, 'supplier/login.html', {'form': form})

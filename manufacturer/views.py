@@ -9,6 +9,9 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from utils.email import send_email
 
+from django.contrib.auth import login
+from manufacturer.backends import ManufacturerBackend
+
 def manufacturer_register(request):
     if request.method == 'POST':
         form = ManufacturerRegistrationForm(request.POST)
@@ -32,6 +35,9 @@ def manufacturer_register(request):
                 key_products=form.cleaned_data['key_products']
             )
             
+            # Log the user in with the Manufacturer backend
+            login(request, user, backend='manufacturer.backends.ManufacturerBackend')
+            
             # Send welcome email
             send_email(
                 subject="Your Manufacturer Account Has Been Created",
@@ -42,9 +48,17 @@ def manufacturer_register(request):
                     'user': user
                 }
             )
+            
+            messages.success(request, 'Registration successful! Welcome to your dashboard.')
+            return redirect('manufacturer_dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = ManufacturerRegistrationForm()
     return render(request, 'manufacturer/register.html', {'form': form})
+
+
+from django.contrib import messages
 
 def manufacturer_login(request):
     if request.method == 'POST':
@@ -55,13 +69,19 @@ def manufacturer_login(request):
             user = authenticate(request, username=username, password=password)
             
             if user is not None:
-                # Check if this user is a manufacturer
+                # Additional check to prevent admin login
+                if user.is_staff:
+                    messages.error(request, "Admin users must login through the admin portal")
+                    return render(request, 'manufacturer/login.html', {'form': form})
+                
                 try:
-                    manufacturer = Manufacturer.objects.get(user=user)
-                    login(request, user)
+                    Manufacturer.objects.get(user=user)
+                    login(request, user, backend='manufacturer.backends.ManufacturerBackend')
                     return redirect('manufacturer_dashboard')
                 except Manufacturer.DoesNotExist:
                     form.add_error(None, "This account is not registered as a manufacturer")
+            else:
+                form.add_error(None, "Invalid username or password")
     else:
         form = ManufacturerLoginForm()
     return render(request, 'manufacturer/login.html', {'form': form})
