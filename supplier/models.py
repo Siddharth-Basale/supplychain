@@ -13,6 +13,8 @@ class Supplier(models.Model):
     website = models.URLField(blank=True)
     phone_number = models.CharField(max_length=20)
     key_services = models.TextField()
+    wallet_address = models.CharField(max_length=42, blank=True, null=True)
+    
     
     def __str__(self):
         return self.company_name
@@ -29,6 +31,18 @@ class Bid(models.Model):
         ('accepted', 'Accepted'),
         ('rejected', 'Rejected')
     ], default='submitted')
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('deposited', 'Deposit Received'),
+        ('released', 'Payment Released'),
+        ('disputed', 'Disputed'),
+    ]
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default='pending'
+    )
+    transaction_hash = models.CharField(max_length=66, blank=True, null=True)
 
     def __str__(self):
         return f"Bid for {self.quote.product} by {self.supplier.company_name}"

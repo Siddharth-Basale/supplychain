@@ -14,13 +14,15 @@ class SupplierRegistrationForm(UserCreationForm):
     phone_number = forms.CharField(max_length=20, required=True)
     key_services = forms.CharField(widget=forms.Textarea, required=True)
     email = forms.EmailField(required=True)
+    wallet_address = forms.CharField(max_length=42, required=True, 
+                                   label="Ethereum Wallet Address (0x...)")
 
     class Meta:
         model = User
         fields = ('username', 'email', 'password1', 'password2',
                   'first_name', 'last_name', 'company_name', 'city', 
                   'state', 'business_type', 'website', 'phone_number', 
-                  'key_services')
+                  'key_services', 'wallet_address')
 
 class SupplierLoginForm(forms.Form):
     username = forms.CharField()
