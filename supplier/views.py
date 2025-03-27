@@ -70,7 +70,6 @@ def supplier_login(request):
         form = SupplierLoginForm()
     return render(request, 'supplier/login.html', {'form': form})
 
-# supplier/views.py
 def supplier_dashboard(request):
     if not request.user.is_authenticated:
         return redirect('supplier_login')
@@ -89,6 +88,11 @@ def supplier_dashboard(request):
         
         your_bids = Bid.objects.filter(supplier=supplier).select_related('quote')
         
+        # Get feedback received by this supplier
+        feedback_received = Feedback.objects.filter(bid__supplier=supplier).select_related(
+            'bid__quote__manufacturer'
+        ).order_by('-submitted_at')[:5]  # Show only last 5 feedbacks
+        
         # Calculate average rating
         ratings = SupplierRating.objects.filter(supplier=supplier)
         average_rating = ratings.aggregate(models.Avg('rating'))['rating__avg']
@@ -101,7 +105,8 @@ def supplier_dashboard(request):
             'categories': categories,
             'current_category': category_filter,
             'average_rating': average_rating,
-            'rating_count': rating_count
+            'rating_count': rating_count,
+            'feedback_received': feedback_received
         })
     except Supplier.DoesNotExist:
         return redirect('supplier_login')
@@ -171,7 +176,9 @@ def view_profile(request):
         return redirect('supplier_login')
     
     supplier = Supplier.objects.get(user=request.user)
-    feedback_received = Feedback.objects.filter(bid__supplier=supplier).select_related('bid__quote__manufacturer')
+    feedback_received = Feedback.objects.filter(bid__supplier=supplier).select_related(
+        'bid__quote__manufacturer'
+    ).order_by('-submitted_at')
     
     return render(request, 'supplier/profile.html', {
         'supplier': supplier,
